@@ -1,0 +1,77 @@
+name: Brand Report — JSON to Markdown
+
+on:
+  # Manual trigger with inputs
+  workflow_dispatch:
+    inputs:
+      report_slug:
+        description: 'Report slug (e.g., bymb-2026-03-14-1656)'
+        required: true
+        type: string
+      bucket:
+        description: 'S3 bucket'
+        required: true
+        default: 'brand-data'
+        type: choice
+        options:
+          - brand-data
+          - brand-reports
+
+  # Or trigger via webhook from n8n
+  repository_dispatch:
+    types: [brand-report-ready]
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Get report slug
+        id: slug
+        run: |
+          # From manual trigger or webhook
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "slug=${{ inputs.report_slug }}" >> $GITHUB_OUTPUT
+            echo "bucket=${{ inputs.bucket }}" >> $GITHUB_OUTPUT
+          else
+            # From repository_dispatch (n8n webhook)
+            echo "slug=${{ github.event.client_payload.report_slug }}" >> $GITHUB_OUTPUT
+            echo "bucket=${{ github.event.client_payload.bucket || 'brand-data' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fetch master.json from S3
+        run: |
+          SLUG="${{ steps.slug.outputs.slug }}"
+          BUCKET="${{ steps.slug.outputs.bucket }}"
+          URL="https://s3.bymb.bh/${BUCKET}/${SLUG}/master.json"
+          
+          echo "Fetching: $URL"
+          curl -f -o master.json "$URL"
+          
+          echo "Size: $(wc -c < master.json) bytes"
+          echo "Brand: $(python3 -c "import json; print(json.load(open('master.json')).get('meta',{}).get('brand_name','unknown'))")"
+
+      - name: Convert to Markdown
+        run: |
+          python3 scripts/json_to_md.py master.json reports/${{ steps.slug.outputs.slug }}.md
+
+      - name: Commit and push
+        run: |
+          git config user.name "BYMB Brand Machine"
+          git config user.email "bot@by-mb.com"
+          git add reports/
+          
+          SLUG="${{ steps.slug.outputs.slug }}"
+          BRAND=$(python3 -c "import json; print(json.load(open('master.json')).get('meta',{}).get('brand_name','Brand'))")
+          
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "📋 Brand report: ${BRAND} (${SLUG})"
+          git push

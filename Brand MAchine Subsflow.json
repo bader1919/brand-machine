@@ -1,0 +1,1726 @@
+{
+  "name": "Brand MAchine Subsflow",
+  "nodes": [
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"id\": {\n      \"type\": \"string\",\n      \"description\": \"The variation identifier e.g. bymb_primary, bymb_reversed, bymb_monochrome, bymb_icon\"\n    },\n    \"svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG code starting with <svg and ending with </svg>\"\n    },\n    \"viewbox_used\": {\n      \"type\": \"string\",\n      \"description\": \"The viewBox value used e.g. 0 0 300 100 or 0 0 100 100\"\n    },\n    \"elements_used\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"List of SVG elements used e.g. path, circle, rect, line, text\"\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any design decisions made or deviations from the brief. Empty string if none.\"\n    }\n  },\n  \"required\": [\"id\", \"svg\", \"viewbox_used\", \"elements_used\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3840,
+        -2032
+      ],
+      "id": "d83db3a8-11d9-490c-9f3f-7afc8f3d85ab",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"primary\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"pantone_pms\":  { \"type\": \"string\", \"description\": \"Pantone PMS coated code e.g. PMS 2945 C\" },\n        \"pantone_name\": { \"type\": \"string\", \"description\": \"Pantone colour name e.g. Reflex Blue\" },\n        \"hex_reference\": { \"type\": \"string\", \"description\": \"The hex value this was matched from\" },\n        \"match_confidence\": { \"type\": \"string\", \"enum\": [\"exact\", \"close\", \"approximate\"], \"description\": \"How close the Pantone match is\" }\n      },\n      \"required\": [\"pantone_pms\", \"pantone_name\", \"hex_reference\", \"match_confidence\"]\n    },\n    \"secondary\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"pantone_pms\":  { \"type\": \"string\" },\n        \"pantone_name\": { \"type\": \"string\" },\n        \"hex_reference\": { \"type\": \"string\" },\n        \"match_confidence\": { \"type\": \"string\", \"enum\": [\"exact\", \"close\", \"approximate\"] }\n      },\n      \"required\": [\"pantone_pms\", \"pantone_name\", \"hex_reference\", \"match_confidence\"]\n    },\n    \"accent\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"pantone_pms\":  { \"type\": \"string\" },\n        \"pantone_name\": { \"type\": \"string\" },\n        \"hex_reference\": { \"type\": \"string\" },\n        \"match_confidence\": { \"type\": \"string\", \"enum\": [\"exact\", \"close\", \"approximate\"] }\n      },\n      \"required\": [\"pantone_pms\", \"pantone_name\", \"hex_reference\", \"match_confidence\"]\n    },\n    \"neutral\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"pantone_pms\":  { \"type\": \"string\" },\n        \"pantone_name\": { \"type\": \"string\" },\n        \"hex_reference\": { \"type\": \"string\" },\n        \"match_confidence\": { \"type\": \"string\", \"enum\": [\"exact\", \"close\", \"approximate\"] }\n      },\n      \"required\": [\"pantone_pms\", \"pantone_name\", \"hex_reference\", \"match_confidence\"]\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any matching challenges or recommendations. Empty string if none.\"\n    }\n  },\n  \"required\": [\"primary\", \"secondary\", \"accent\", \"neutral\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4080,
+        -2304
+      ],
+      "id": "23d52738-256f-469f-9192-d3d35e166a1c",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional SVG vector designer specialising in corporate identity.\n\n\nThe logo system has been defined by the Creative Director as follows:\n\n\nTechnical rules you must follow:\n- Use ONLY these SVG elements: path, circle, rect, line, text\n- No external fonts. Render the wordmark as geometric letter paths\n- No transforms other than translate\n- Viewbox must be 0 0 300 100 for horizontal variations\n- Viewbox must be 0 0 100 100 for icon only variation\n- Include xmlns=\"http://www.w3.org/2000/svg\" on the svg element\n- Output ONLY the raw SVG code\n- Start with the svg opening tag and end with the svg closing tag\n- No markdown, no explanation, no code fences, no comments\n\n\nYou are generating logo variations for the brand {{ $json.brand_name }}\n\n{{ $json.agent3_brief_md }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        4096,
+        -2032
+      ],
+      "id": "586661bb-fda3-47d8-bbcb-2e8fd4714c6c",
+      "name": "LOGO",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are Pantone Approximator identifying the closest Pantone PMS coated codes for the brand colour palette of  \n{{ $('Start').item.json.brand_name }}\nUsing the colour system described in the system message, find the closest Pantone PMS coated match for each of the four colour roles: primary, secondary, accent, and neutral.\nFor each colour return the PMS code, the Pantone name, the hex value you matched from, and your confidence level as either exact, close, or approximate.\nIf a colour is very close to two Pantone codes, choose the one that better reflects the brand personality described in the brief and explain your choice in generation_notes.\n{{ $json.agent3_brief_md }}\nThe logo system has been defined by the Creative Director as follows:\n\n\n\n\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3888,
+        -2432
+      ],
+      "id": "f6837242-80cd-4ed6-84aa-a1ae7d888876",
+      "name": "Pantone Approximator"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"google_fonts_url\": {\n      \"type\": \"string\",\n      \"description\": \"Complete Google Fonts URL for all required font families and weights\"\n    },\n    \"html_font_imports\": {\n      \"type\": \"string\",\n      \"description\": \"Ready to paste HTML link tags for the document head\"\n    },\n    \"css_variables\": {\n      \"type\": \"string\",\n      \"description\": \"Complete CSS variables block using token naming convention xs sm base md lg xl xl2 xl3 display\"\n    },\n    \"spec_table\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"token\":          { \"type\": \"string\", \"description\": \"Token name e.g. xs, sm, base, md\" },\n          \"px\":             { \"type\": \"number\", \"description\": \"Size in pixels\" },\n          \"rem\":            { \"type\": \"number\", \"description\": \"Size in rem\" },\n          \"line_height\":    { \"type\": \"number\", \"description\": \"Line height ratio\" },\n          \"letter_spacing\": { \"type\": \"string\", \"description\": \"Letter spacing value e.g. -0.02em\" },\n          \"usage\":          { \"type\": \"string\", \"description\": \"Recommended usage e.g. Body text, H1 heading\" }\n        },\n        \"required\": [\"token\", \"px\", \"rem\", \"line_height\", \"letter_spacing\", \"usage\"]\n      }\n    },\n    \"fonts_used\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"List of font families included e.g. Poppins, Roboto, Cairo, Tajawal\"\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any typography decisions or deviations from the brief. Empty string if none.\"\n    }\n  },\n  \"required\": [\"google_fonts_url\", \"html_font_imports\", \"css_variables\", \"spec_table\", \"fonts_used\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3888,
+        -4048
+      ],
+      "id": "2d8077e3-68c1-4418-a280-97a3a9213e32",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nYou  an expert in fonts and you are building the complete typography system for the brand {{ $json.brand_name }}\nUsing the typography direction described in the system message, generate the full type system including the Google Fonts URL, HTML link tags, CSS variables block, and a complete spec table.\n\n{{ $json.agent3_brief_md }}\n\nList every font family included and note any decisions you made about weights or fallbacks in generation_notes.\n\n{{ $json.agents[1].config }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3808,
+        -4192
+      ],
+      "id": "71d3bc05-9ab7-4307-b2db-00ed383ec128",
+      "name": "Typography System"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"business_card_svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG code for business card. Viewbox must be 0 0 340 208.\"\n    },\n    \"letterhead_svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG code for A4 letterhead preview. Viewbox must be 0 0 595 842.\"\n    },\n    \"viewboxes_used\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"business_card\": { \"type\": \"string\" },\n        \"letterhead\":    { \"type\": \"string\" }\n      },\n      \"required\": [\"business_card\", \"letterhead\"]\n    },\n    \"colors_applied\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"List of hex values used in the mockups\"\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any layout decisions or deviations from the brief. Empty string if none.\"\n    }\n  },\n  \"required\": [\"business_card_svg\", \"letterhead_svg\", \"viewboxes_used\", \"colors_applied\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4080,
+        -2880
+      ],
+      "id": "f1e384f9-8e7d-4b83-bc9e-d24dbc18b204",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"clear_space_svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG showing minimum exclusion zone. Viewbox must be 0 0 400 200.\"\n    },\n    \"min_size_svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG showing correct and incorrect size usage. Viewbox must be 0 0 400 180.\"\n    },\n    \"dos_donts_svg\": {\n      \"type\": \"string\",\n      \"description\": \"Complete raw SVG showing correct usage vs critical misuse. Viewbox must be 0 0 500 240.\"\n    },\n    \"viewboxes_used\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"clear_space\": { \"type\": \"string\" },\n        \"min_size\":    { \"type\": \"string\" },\n        \"dos_donts\":   { \"type\": \"string\" }\n      },\n      \"required\": [\"clear_space\", \"min_size\", \"dos_donts\"]\n    },\n    \"rules_captured\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"List of brand rules represented in the diagrams\"\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any diagram decisions or deviations from the brief. Empty string if none.\"\n    }\n  },\n  \"required\": [\"clear_space_svg\", \"min_size_svg\", \"dos_donts_svg\", \"viewboxes_used\", \"rules_captured\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4016,
+        -3408
+      ],
+      "id": "4e1d23e7-4a69-488c-b832-86270550b337",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"instagram_post\":   {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"instagram_story\":  {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"linkedin_banner\":  {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"facebook_cover\":   {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"youtube_banner\":   {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"twitter_header\":   {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"whatsapp_profile\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"avatar_circle\":    {\n      \"type\": \"object\",\n      \"properties\": {\n        \"width\":        { \"type\": \"number\" },\n        \"height\":       { \"type\": \"number\" },\n        \"svg_template\": { \"type\": \"string\" }\n      },\n      \"required\": [\"width\", \"height\", \"svg_template\"]\n    },\n    \"platforms_generated\": {\n      \"type\": \"array\",\n      \"items\": { \"type\": \"string\" },\n      \"description\": \"List of platform keys successfully generated\"\n    },\n    \"generation_notes\": {\n      \"type\": \"string\",\n      \"description\": \"Any layout decisions or deviations from the brief. Empty string if none.\"\n    }\n  },\n  \"required\": [\"instagram_post\", \"instagram_story\", \"linkedin_banner\", \"facebook_cover\", \"youtube_banner\", \"twitter_header\", \"whatsapp_profile\", \"avatar_circle\", \"platforms_generated\", \"generation_notes\"]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4112,
+        -1744
+      ],
+      "id": "9f638dad-8542-4807-aada-cbb1e6c0dd98",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Generate all 3 brand governance diagrams for the brand \nEach diagram must look like it belongs in a professional enterprise brand guidelines document — the standard of a Deloitte or McKinsey brand manual. Clean, precise, authoritative\n\nhe Creative Director has defined the following consistency rules that must be visualised in these diagrams:\n\n\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3984,
+        -3552
+      ],
+      "id": "8634da36-a569-4888-a0e4-4bcf2c3ca78a",
+      "name": "Brand Rules Diagrams"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nYou are a senior brand designer at a top-tier corporate identity agency specialising in enterprise SVG template systems.\n\n\nYou are generating social media templates for the brand {{ $json.brand_name }} — a professional security consultancy operating in Bahrain serving enterprise and government clients.\nThe visual standard required is equivalent to McKinsey, Deloitte, or Arup digital brand assets. Every template must look like it was designed by a senior art director, not auto-generated. Strict Swiss grid system, mathematical precision, intentional use of negative space.\n\n\nComplete visual identity brief from the Creative Director:\n\n{{ $json.agent3_brief_md }}\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3840,
+        -1792
+      ],
+      "id": "3e271dee-1152-4dd3-bec0-53cc58a8688b",
+      "name": "social media templates"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"asset_type\": \"Hero Image\",\n  \"usage_context\": \"Website Homepage Header\",\n  \"aspect_ratio\": \"16:9\",\n  \"size\": \"1728x960\",\n  \"enhanced_prompt\": \"A breathtaking, wide-angle perspective of a pristine, state-of-the-art warehouse interior located in Bahrain, characterized by an atmosphere of operational silence and perfect order where industrial precision meets minimalist design. The space is bathed in high-key, diffused natural daylight streaming through expansive glass curtain walls, casting crisp, geometric shadows that define the spatial volumes while maintaining a cool, clinical color temperature of approximately 5500K. The composition employs a strict rule of thirds arrangement. The visual palette is anchored by deep Navy Blue, accented sparingly with Gold, set against Pure White walls and Light Grey concrete flooring. Captured in the style of high-end architectural photography. Avoid security camera tropes, lens flares, red recording indicators, blue wireframe grids, dark surveillance imagery, generic stock photo aesthetics. Brand: BYMB | Asset: Hero Image | Usage: Website Homepage Header\",\n  \"style_tags\": [\"architectural photography\", \"high-key lighting\", \"minimalist\", \"corporate\"],\n  \"generation_notes\": \"\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3184,
+        -4224
+      ],
+      "id": "f2ae2d1a-382d-498a-a760-b739dea521a2",
+      "name": "Structured Output Parser6"
+    },
+    {
+      "parameters": {
+        "numberInputs": 7
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4848,
+        -2752
+      ],
+      "id": "9bd3c430-883e-4053-a200-00f1e41209c1",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const brandName = $('Start').first().json.brand_name;\n\nconst prompts = $input.first().json.output.english_version.production_assets.image_generation_prompts;\n  \n\nif (!Array.isArray(prompts) || prompts.length === 0) {\n  throw new Error('Agent 3 missing image_generation_prompts array');\n}\n\nconst sizeMap = {\n  '16:9': '1728x960',\n  '3:2':  '1568x1056',\n  '1:1':  '1280x1280',\n  '4:3':  '1472x1088',\n  '9:16': '960x1728'\n};\n\nconst batchSize = prompts.length; // dynamic — matches exact number of prompts\nconst waitMs = 25000; // sync HTTP request handles timing naturally\n\nreturn prompts.map((item, index) => ({\n  json: {\n    index,\n    batch_size:    batchSize,\n    wait_ms:       waitMs,\n    brand_name:    brandName,\n    asset_type:    item.asset_type,\n    prompt:        item.prompt,\n    aspect_ratio:  item.aspect_ratio,\n    usage_context: item.usage_context,\n    size:          sizeMap[item.aspect_ratio] || '1280x1280'\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2704,
+        -4416
+      ],
+      "id": "38bd7065-31cb-4026-8b96-e5873c191f5e",
+      "name": "7A"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst sizeMap = {\n  '16:9': { width: 1728, height: 960  },\n  '3:2':  { width: 1568, height: 1056 },\n  '1:1':  { width: 1120, height: 1120 },\n  '4:3':  { width: 1472, height: 1088 },\n  '9:16': { width: 960,  height: 1728 }\n};\n\nreturn items.map(item => {\n  const raw = item.json;\n  const o = raw.output || raw;\n  const dims = sizeMap[o.aspect_ratio] || { width: 1120, height: 1120 };\n\n  return {\n    json: {\n      asset_type:       o.asset_type,\n      usage_context:    o.usage_context,\n      size:             o.size,\n      aspect_ratio:     o.aspect_ratio,\n      style_tags:       o.style_tags,\n      generation_notes: o.generation_notes,\n      CLOUDFLARE_ACCOUNT_ID: 'af7eb4d11cb05e46657e07f1d04e91db',\n      CLOUDFLARE_API_TOKEN:  'cfut_VoVSCKVxns1C6VXozRnDPw4slKYJQ8sVQgu9DAT081c2440f',\n      cf_payload: {\n        prompt:    o.text || o.prompt,\n        num_steps: 28,\n        guidance:  6.5,\n        width:     dims.width,\n        height:    dims.height\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3296,
+        -4576
+      ],
+      "id": "0b80499a-799b-4cef-8c5b-a4a90b495445",
+      "name": "7D"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\n\nYou are a professional photography director and AI image generation prompt engineer specialising in corporate brand photography.\n\nYou are enhancing image generation prompts for the brand **{{ $('Start').item.json.brand_name }}**\n\nThe brand visual direction is:\n{{ $('Start').item.json.english_version.visual_positioning_concept.values().join(\"\\n \\n\") }}\n\nYour job is to take the base prompt and enhance it into a production ready prompt optimised for AI image generation. The enhanced prompt must stay true to the brand direction, be specific about lighting, composition, color temperature, and style, and include negative prompt terms to avoid brand misrepresentation.\n",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "message": "=Asset type: {{ $json.asset_type }}\nUsage context: {{ $json.usage_context }}\nAspect ratio: {{ $json.aspect_ratio }}\nSize: {{ $json.size }}\nBase prompt: {{ $json.prompt }}\n\nEnhance this into a single rich natural language paragraph optimised for Adobe Firefly.\nInclude in order:\n1. Subject and environment description\n2. Lighting (be specific — quality, direction, color temperature)\n3. Composition (rule of thirds, flat-lay, close-up etc.)\n4. Color palette (describe in words, reference Navy Blue and Gold where appropriate)\n5. Style reference (architectural photography, luxury product photography etc.)\n6. Avoidance language (what to exclude — security camera tropes, dark surveillance imagery, red recording indicators, generic stock photo aesthetic)\n\nEnd the enhanced_prompt with this line exactly:\nBrand: {{ $json.brand_name }} | Asset: {{ $json.asset_type }} | Usage: {{ $json.usage_context }}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3232,
+        -4320
+      ],
+      "id": "45bfbe89-60e7-46fa-8925-75f00ef16631",
+      "name": "7C Prompt enhancer"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.cloudflare.com/client/v4/accounts/{{ $json.CLOUDFLARE_ACCOUNT_ID}}/ai/run/@cf/black-forest-labs/flux-1-schnell",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.CLOUDFLARE_API_TOKEN }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.cf_payload.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 10000
+            }
+          },
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        3840,
+        -4544
+      ],
+      "id": "df252a34-f23f-4d68-99ca-aae01e574a2c",
+      "name": "7F HTTP AUTH",
+      "notesInFlow": false,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "result.image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4176,
+        -4544
+      ],
+      "id": "8b3e41e7-c159-48d9-8baa-1cddb72c90c7",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c67a4e5a-09ea-4907-97d1-68d24e06e014",
+      "typeVersion": 1.1,
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        2176,
+        -3152
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e8386553-b0f9-4049-a66f-4218e552dc57",
+              "name": "brand_name",
+              "value": "={{$json.brand_name}}",
+              "type": "string"
+            },
+            {
+              "id": "942a2801-6c0a-4c12-839a-a266d8d40bb9",
+              "name": "output.english_version.production_assets.image_generation_prompts",
+              "value": "={{$json.output.english_version.production_assets.image_generation_prompts}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        -4416
+      ],
+      "id": "6ea73f7d-91ce-4722-8a5d-7138ef721515",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2944,
+        -4416
+      ],
+      "id": "878e5ad6-165b-4efb-950e-8d444c668dba",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are generating SVG mockups of the corporate stationery for the brand{{ $json.brand_name }}\n\n\nUsing the full visual identity brief and stationery specifications described in the system message, generate two SVG mockups: a business card and an A4 letterhead preview.\nThe business card viewbox must be exactly 0 0 340 208.\nThe letterhead viewbox must be exactly 0 0 595 842.\nList every hex colour value you applied and confirm the viewbox used for each mockup. Note any layout decisions you made in generation_notes.\n\n\n{{ $json.agent3_brief_md }}",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        3952,
+        -3136
+      ],
+      "id": "e1de461f-331a-4fe1-bbab-2e7c8e275790",
+      "name": "Mockup Generator"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.executionData",
+      "typeVersion": 1.1,
+      "position": [
+        5024,
+        -3312
+      ],
+      "id": "65e89f5a-88f1-45b8-b443-722069f78009",
+      "name": "Execution Data"
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        5152,
+        -2656
+      ],
+      "id": "512163d2-7d41-4555-870a-9965789ebfb7",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3072,
+        -3952
+      ],
+      "id": "9eb963ad-35e2-4deb-afb2-f9c228bcfc1e",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3792,
+        -3808
+      ],
+      "id": "8ed6682a-5cac-4ea0-98f0-a6944874b717",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3744,
+        -2704
+      ],
+      "id": "f5c5c55c-6b9f-48b0-80e4-df6a32dfba85",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        -3248
+      ],
+      "id": "e702fa42-1d01-43ee-91b2-47125ab5ac5a",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3504,
+        -1840
+      ],
+      "id": "fc516584-9d77-4024-8648-9fd3f76f23df",
+      "name": "OpenRouter Chat Model4",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3680,
+        -2208
+      ],
+      "id": "143f6320-6320-4cac-bd45-323ed32429db",
+      "name": "OpenRouter Chat Model5",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "stepfun/step-3.5-flash:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        -1472
+      ],
+      "id": "f8200da2-a161-4a9b-83ab-bf4441645c96",
+      "name": "OpenRouter Chat Model6",
+      "credentials": {
+        "openRouterApi": {
+          "id": "bKoLxKCmSzE9r2iZ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "action": "generate",
+        "dataPropertyName": "sessionId"
+      },
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        4000,
+        -4368
+      ],
+      "id": "e3eff03d-654d-496e-a0ed-9b59bb72f656",
+      "name": "Crypto"
+    },
+    {
+      "parameters": {
+        "command": "=claude -p /firefly-generate \"guid: {{  $json.guid }} {{ $json.prompt }}",
+        "cwd": "."
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        4752,
+        -4400
+      ],
+      "id": "d03814e9-c48b-4c5b-93d6-4974a7123d51",
+      "name": "Execute a command",
+      "credentials": {
+        "sshPassword": {
+          "id": "nJmwaK6PecVF1fKJ",
+          "name": "SSH Password account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eef8b5b8-6559-40ee-9035-3cb113603012",
+              "name": "guid",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "a76593dd-dd62-4a58-bdae-85f9b84f9107",
+              "name": "prompt",
+              "value": "={{ $('7C Prompt enhancer')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4176,
+        -4336
+      ],
+      "id": "0bd1430f-95be-4422-b2da-1f35b979bfe3",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "  const prompt = $input.first().json.prompt;\n  const executionId = $input.first().json.guid;\n\n  const command = `claude --dangerously-skip-permissions -p \"/firefly-generate prompt=\\`\"${prompt}\\`\"\n  execution_id=\\`\"${executionId}\\`\"\"`;\n\n  return [{ json: { command, executionId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4480,
+        -4304
+      ],
+      "id": "eac1ee72-e808-4127-b9a6-c8234b7cd051",
+      "name": "Build Command"
+    },
+    {
+      "parameters": {
+        "command": "={{ $json.command }} {{$json.executionId  }}"
+      },
+      "type": "n8n-nodes-base.ssh",
+      "typeVersion": 1,
+      "position": [
+        4688,
+        -4208
+      ],
+      "id": "9c5cead9-8863-4fb1-a6d9-28b3b0a2f06d",
+      "name": "Execute a command1",
+      "credentials": {
+        "sshPassword": {
+          "id": "nJmwaK6PecVF1fKJ",
+          "name": "SSH Password account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        3504,
+        -4576
+      ],
+      "id": "84dd50d5-35cc-44a2-85e4-36f130db36aa",
+      "name": "Limit"
+    }
+  ],
+  "pinData": {
+    "Start": [
+      {
+        "json": {
+          "english_version": {
+            "visual_positioning_concept": {
+              "creative_direction_statement": "BYMB's visual identity fuses the authority and wisdom of the Sage archetype with the innovation and craftsmanship of the Creator. Every touchpoint communicates 'built by someone who has been in the trenches for 23 years and now builds the future.' The system is anchored in deep navy tones that project institutional confidence, warmed by gold accents that signal premium craftsmanship. The overall effect: a consultancy that doesn't just advise — it architects and delivers.",
+              "archetype": "Sage + Creator",
+              "archetype_rationale": "Sage reflects BYMB's 23 years of cross-industry management experience (banking, telecom, real estate) and data-driven consulting methodology. Creator reflects the hands-on building of AI systems, smart home ecosystems, automation workflows, and security infrastructure. Together they position BYMB as the rare consultancy that both understands the problem deeply AND builds the solution.",
+              "emotional_drivers": [
+                "Trust through demonstrated competence",
+                "Confidence from tangible, working systems",
+                "Premium quality without corporate coldness",
+                "Innovation grounded in practical outcomes"
+              ],
+              "personality_traits": [
+                "Authoritative but approachable",
+                "Technical but human",
+                "Premium but not elitist",
+                "Innovative but reliable"
+              ],
+              "desired_feel": "Walking into a master craftsman's modern workshop — everything is precise, purposeful, and built to last. The space feels warm and human despite the advanced technology. You immediately trust the person behind it.",
+              "what_to_avoid": "Corporate sterility, startup chaos, over-designed complexity, cold minimalism, generic stock imagery, tech-bro aesthetics, anything that looks templated or mass-produced."
+            },
+            "logo_system_direction": {
+              "type": "Custom wordmark with tagline",
+              "primary_mark": "BYMB in bold uppercase custom typeface — geometric, confident letterforms with subtle weight variations that suggest both stability and forward movement.",
+              "tagline": "Success is a Journey, Not a Destination",
+              "tagline_treatment": "Set in Brand Blue (#4088C0) beneath the wordmark. Lighter weight, slightly letterspaced for breathing room.",
+              "symbol_concept": "The wordmark IS the symbol. No separate icon mark — the B letterform serves as the monogram for compact applications (favicons, app icons, social avatars).",
+              "geometry": "Strong vertical strokes with subtle curves. The B and M forms create visual anchors. Overall proportions are slightly wide, projecting stability.",
+              "scalability": {
+                "full_logo": "Wordmark + tagline — use at 120px+ width",
+                "compact": "Wordmark only (no tagline) — use at 80-120px width",
+                "monogram": "B letterform extracted — use at 16-80px width (favicons, app icons)"
+              },
+              "color_versions": {
+                "white_on_dark": "White (#FFFFFF) wordmark + Brand Blue (#4088C0) tagline on transparent — for dark backgrounds (preferred)",
+                "dark_on_light": "Black (#000000) wordmark + Brand Blue (#4088C0) tagline on transparent — for light backgrounds"
+              },
+              "bilingual_notes": "Arabic version should use Noto Sans Arabic Bold for the company name, maintaining the same weight and visual density as the English wordmark. Tagline translated and set in the same Brand Blue."
+            },
+            "color_strategy": {
+              "philosophy": "The palette communicates institutional trust (navy) elevated by premium craftsmanship (gold), grounded in warmth and approachability (cream). Every color earns its place — no decorative fills, no arbitrary accents.",
+              "emotional_roles": {
+                "midnight_navy": "Authority, depth, expertise — the 23 years of experience",
+                "dark_navy": "Active confidence — buttons, CTAs, navigation that says 'we build things'",
+                "gold": "Premium quality, achievement, the reward of good work — used sparingly for maximum impact",
+                "cream": "Warmth, approachability, human touch — the consultancy is a person, not a corporation",
+                "white": "Clarity, breathing room, clean thinking — the Sage's clear mind"
+              },
+              "contrast_strategy": "High contrast between navy and white for readability. Gold used as a bridge color that warms the navy-white relationship. Cream softens transitions. Status colors are functional-only — never decorative.",
+              "cultural_considerations": "Gold carries positive connotations in Gulf/Arabic culture (prosperity, generosity, excellence). Navy projects Western corporate authority while remaining culturally neutral. Cream avoids the coldness of pure white, which can feel sterile in Middle Eastern design contexts."
+            },
+            "suggested_color_palette_structure": {
+              "primary": {
+                "name": "Midnight Navy",
+                "hex": "#1A2744",
+                "rgb": "26, 39, 68",
+                "role": "Primary text, dark backgrounds, hero sections, navigation, footers",
+                "usage_percentage": "40-50% of visual weight"
+              },
+              "secondary": {
+                "name": "Dark Navy",
+                "hex": "#243356",
+                "rgb": "36, 51, 86",
+                "role": "Buttons, accents, cards on dark sections, secondary dark areas",
+                "usage_percentage": "15-20%"
+              },
+              "accent": {
+                "name": "Gold",
+                "hex": "#C9A84C",
+                "rgb": "201, 168, 76",
+                "role": "CTAs, premium highlights, dividers, icons, achievement markers — sparingly",
+                "usage_percentage": "5-10% maximum"
+              },
+              "neutral": {
+                "name": "Cream",
+                "hex": "#F8F5EF",
+                "rgb": "248, 245, 239",
+                "role": "Warm backgrounds, feature sections, testimonials, pricing areas",
+                "usage_percentage": "20-30%"
+              },
+              "supporting_colors": {
+                "white": {
+                  "hex": "#FFFFFF",
+                  "role": "Default background, text on dark"
+                },
+                "mid_gray": {
+                  "hex": "#B0AEA5",
+                  "role": "Secondary text, captions, muted elements"
+                },
+                "soft_gold": {
+                  "hex": "#F5EFE0",
+                  "role": "Gradient D warm light cycle, subtle card backgrounds"
+                },
+                "brand_blue": {
+                  "hex": "#4088C0",
+                  "role": "Logo tagline ONLY — never used elsewhere in UI"
+                }
+              },
+              "status_colors": {
+                "success": {
+                  "hex": "#2E7D5B",
+                  "usage": "Active, Paid, Complete, Confirmed"
+                },
+                "info": {
+                  "hex": "#3B82C4",
+                  "usage": "Pending, In Progress, Processing"
+                },
+                "warning": {
+                  "hex": "#D4922A",
+                  "usage": "Needs Review, Expiring Soon, Attention"
+                },
+                "danger": {
+                  "hex": "#C44B4B",
+                  "usage": "Error, Cancelled, Expired, Overdue"
+                }
+              }
+            },
+            "typography_direction": {
+              "english": {
+                "heading_font": "Poppins",
+                "heading_weights": "Bold (700) for titles, SemiBold (600) for subheads and buttons",
+                "body_font": "Lora",
+                "body_weights": "Regular (400) for text, Bold (700) for emphasis, Italic (400i) for quotes",
+                "pairing_rationale": "Poppins (geometric sans) projects modernity and technical clarity — the Creator side. Lora (transitional serif) adds warmth, readability, and literary gravitas — the Sage side. Together they say 'smart AND approachable.'",
+                "scale": {
+                  "h1": "32pt / 2.5rem — Page titles, hero text",
+                  "h2": "24pt / 1.875rem — Section headings",
+                  "h3": "18pt / 1.125rem — Subsection headings",
+                  "body": "16px / 1rem — Paragraph text (web), 11pt (print)",
+                  "small": "14px / 0.875rem — Captions, labels",
+                  "caption": "12px / 0.75rem — Footnotes, legal"
+                },
+                "line_height": "1.7 for body text, 1.2 for headings",
+                "letter_spacing": "0 for body, -0.02em for h1, 0.1-0.3em for uppercase labels"
+              },
+              "arabic": {
+                "heading_font": "Noto Sans Arabic",
+                "heading_weights": "Bold (700) for titles, SemiBold (600) for subheads",
+                "body_font": "Noto Sans Arabic",
+                "body_weights": "Regular (400) for text",
+                "notes": "Arabic text requires 10-15% larger sizing than English equivalents for comparable visual weight. Line height should be 1.8-2.0 for Arabic body text. RTL layout mirrors all alignments."
+              }
+            },
+            "imagery_photography_direction": {
+              "mood": "Confident, warm, purposeful. Images should feel like looking through the window of a high-end consultancy — real work happening, real technology in use, real results on screen. Never staged or stock-feeling.",
+              "composition": {
+                "primary_style": "Clean, editorial — strong focal points with generous negative space",
+                "framing": "Slightly elevated or eye-level perspectives. Avoid dramatic angles that feel startup-ish.",
+                "depth_of_field": "Shallow where technology is the hero (sharp device, soft background). Deep for workspace and environment shots.",
+                "color_grading": "Warm shadows (not cool/blue), slightly desaturated midtones, rich but not oversaturated. The palette should feel like it 'lives' in the brand's navy/gold/cream world."
+              },
+              "human_presence": {
+                "when_to_include": "Service showcases, testimonials, about pages, social media",
+                "treatment": "Professional but not corporate. Smart-casual attire. Engaged in actual work (not posing). Show hands interacting with technology.",
+                "diversity_note": "Use job titles and context instead of ethnicity descriptors: 'professional reviewing dashboard', 'consultant presenting to client', 'technician installing equipment'."
+              },
+              "lighting": {
+                "primary": "Natural light supplemented by warm artificial — golden hour feeling without being cliché",
+                "technology_shots": "Clean, even lighting with subtle warm fill. Screens should be readable, not blown out.",
+                "avoid": "Harsh fluorescent, blue-cast tech lighting, overly dramatic shadows"
+              },
+              "subject_categories": [
+                "Technology in action — dashboards, analytics screens, Home Assistant interfaces",
+                "Workspaces — modern, clean desks with technology visible but not cluttered",
+                "Hands-on installation — CCTV cameras, smart home devices, network equipment",
+                "Data visualization — charts, graphs, KPIs displayed on monitors",
+                "Bahrain context — Manama skyline, local architecture (subtle, not tourist-postcard)",
+                "Abstract patterns — geometric shapes echoing the brand's precision theme"
+              ],
+              "banned_imagery": [
+                "Generic handshake photos",
+                "Clipart-style illustrations",
+                "Overly futuristic/sci-fi renders",
+                "Blue-wash tech stock photos",
+                "People looking at empty screens",
+                "AI-generated faces that look uncanny",
+                "Busy, cluttered compositions"
+              ],
+              "approved_imagery": [
+                "Real dashboards with actual data (anonymized)",
+                "Genuine workspace environments",
+                "Close-ups of quality hardware (Hikvision cameras, Zigbee devices)",
+                "Architectural photography of Bahrain (warm-toned)",
+                "Abstract geometric patterns using brand colors",
+                "Before/after transformation comparisons"
+              ]
+            },
+            "layout_composition_system": {
+              "grid": {
+                "web": "12-column grid, 1200px max-width container, 24px gutter",
+                "mobile": "4-column grid, 16px gutter, full-bleed sections allowed",
+                "print": "6-column grid for A4, 20mm margins all sides"
+              },
+              "spacing_scale": {
+                "unit": "8px base unit",
+                "xxs": "4px — inner padding, icon gaps",
+                "xs": "8px — tight element spacing",
+                "sm": "16px — related element gaps",
+                "md": "24px — card padding, section inner spacing",
+                "lg": "48px — section gaps",
+                "xl": "80px — major section breaks",
+                "xxl": "120px — page-level vertical rhythm"
+              },
+              "white_space": "Generous. White space IS the premium signal. Minimum 40% of any page should be breathing room. When in doubt, add more space.",
+              "visual_rhythm": "Alternate between full-width navy sections and contained cream/white sections. Every 3rd section should have a visual 'anchor' (large stat, featured image, or gradient background).",
+              "document_hierarchy": {
+                "z_pattern": "Hero → Key stats → Services → Social proof → CTA. This pattern applies to landing pages, presentations, and one-pagers.",
+                "f_pattern": "For content-heavy pages (blog, documentation). Left-aligned headings with ragged-right body text."
+              },
+              "section_patterns": {
+                "hero": "Full-width navy or Navy→White Sweep gradient. White logo top-left. Poppins Bold headline center or left. Gold Pulse CTA. Maximum 60% text coverage.",
+                "feature_grid": "Cream or Warm Light gradient background. 2-3 column card grid. White cards with gold left-border accent. Lift & Shadow hover.",
+                "testimonial": "Cream background. Large gold opening quote mark. Lora Italic quote text. Author name in Poppins Bold.",
+                "stats_bar": "Midnight Navy background. 3-4 large numbers in Gold (Poppins Bold 48px). Labels in White (Lora 14px).",
+                "cta_section": "Navy→White Sweep gradient. Centered headline. Gold Pulse primary button + Glass secondary.",
+                "footer": "Midnight Navy solid. White logo. Gold divider line at top. Mid Gray text. 3-column layout (about, links, contact)."
+              },
+              "asymmetric_anchor": "Break the grid intentionally once per page with an oversized element (large stat, hero image, or pull quote) that spans 8+ columns. This prevents the layout from feeling too rigid."
+            },
+            "brand_texture_graphic_elements": {
+              "primary_pattern": {
+                "name": "Precision Grid",
+                "description": "Subtle dotted grid pattern using Mid Gray (#B0AEA5) at 5-8% opacity. Represents data points, systematic thinking, the Sage's organized mind. Used as background texture on white/cream sections.",
+                "usage": "Presentation backgrounds, document watermarks, website section fills. Never over imagery."
+              },
+              "secondary_pattern": {
+                "name": "Circuit Trace",
+                "description": "Thin navy lines forming abstracted circuit board paths — no components, just clean pathways. Represents the Creator's craft of building connected systems.",
+                "usage": "Header/footer decorative elements, section dividers, icon backgrounds at low opacity."
+              },
+              "line_weight_system": {
+                "hairline": "0.5px — subtle dividers, grid lines",
+                "light": "1px — card borders, input borders",
+                "medium": "2px — section dividers, underlines, active states",
+                "bold": "4px — gold accent bars, header/footer bars",
+                "heavy": "8px — hero section top/bottom bars, major structural lines"
+              },
+              "gold_accent_bar": "4px solid Gold (#C9A84C) line used as a visual punctuation mark. Placed under headings, between sections, as card left-border, and as page header/footer accent. Maximum 60px wide when decorative, full-width when structural.",
+              "gradient_policy": {
+                "allowed_gradients": [
+                  "Navy Shift: #1A2744 → #243356 → #1A2744 → #243356 (8s ease infinite, 400% size)",
+                  "Navy→White Sweep: #1A2744 → #243356 → #FFFFFF → #243356 → #1A2744 (12s ease infinite, 500% size)",
+                  "Navy→Cream Sweep: #1A2744 → #243356 → #F8F5EF → #243356 → #1A2744 (12s ease infinite, 500% size)",
+                  "Warm Light: #F8F5EF → #F5EFE0 → #F8F5EF → #E8E0D0 (8s ease infinite, 400% size)"
+                ],
+                "banned": "No rainbow gradients. No gradients as text fills. No gradients on buttons (use solid fills with hover animations). No more than one animated gradient visible at a time."
+              },
+              "icon_style": "Outline-style, 2px stroke weight, rounded corners. Navy (#1A2744) default, Gold (#C9A84C) for active/hover states. 24px base grid. Consistent optical sizing across the set.",
+              "data_visualization": {
+                "primary_series": "Dark Navy (#243356)",
+                "secondary_series": "Gold (#C9A84C)",
+                "tertiary_series": "Mid Gray (#B0AEA5)",
+                "positive": "Success (#2E7D5B)",
+                "negative": "Danger (#C44B4B)",
+                "gridlines": "Mid Gray at 20% opacity",
+                "labels": "Poppins Regular 12px, Midnight Navy"
+              }
+            },
+            "visual_differentiation_strategy": {
+              "against_competitors": "Most Bahrain consultancies use either cold corporate blue-and-white (banking heritage) or flashy startup colors (tech wannabes). BYMB occupies the gap: warm navy + gold signals BOTH institutional trust AND premium craft. No competitor in the Bahrain technology consultancy space uses this warm-authority combination.",
+              "category_creation_visual": "BYMB's visual identity creates a new category: 'The Craftsman Consultant.' Not a suit-and-tie firm, not a hoodie startup. The brand looks like an expert who builds with their hands as well as their mind. This is communicated through the Sage + Creator archetype across every visual touchpoint.",
+              "trust_signals_embedded_in_design": [
+                "Gold accents signal premium without requiring explicit price positioning",
+                "Navy depth communicates decades of experience without needing to state years",
+                "Generous white space signals confidence (only the insecure fill every pixel)",
+                "Real technology screenshots in marketing build immediate credibility",
+                "Bilingual (EN/AR) design shows local roots with global capability",
+                "Lora serif body text creates the gravitas of a published expert"
+              ]
+            },
+            "visual_consistency_rules": {
+              "non_negotiables": [
+                "Logo must always include tagline at sizes 120px+ width",
+                "Gold never exceeds 10% of visual weight on any single page",
+                "Minimum contrast ratio 4.5:1 for all text",
+                "Poppins for headings, Lora for body — never reversed, never substituted",
+                "Status colors (#2E7D5B, #3B82C4, #D4922A, #C44B4B) are functional ONLY — never decorative",
+                "White space minimum 40% of any page or slide",
+                "Animated gradients: maximum ONE visible at a time, never on buttons",
+                "Photography must be warm-toned — no blue-cast, no cold lighting",
+                "Every page/slide must include the gold accent bar somewhere",
+                "Brand Blue (#4088C0) is ONLY for the logo tagline — never in UI"
+              ],
+              "misuse_to_avoid": [
+                "Using gold for large background fills (it's an accent, not a surface)",
+                "Placing the logo on busy or patterned backgrounds",
+                "Mixing more than 2 font families in any single deliverable",
+                "Using status colors as brand colors in marketing materials",
+                "Applying animated gradients to print materials (static only)",
+                "Stretching, rotating, or adding effects to the logo",
+                "Using navy text on dark navy backgrounds (insufficient contrast)",
+                "Centering body text (always left-align or right-align for Arabic)",
+                "Using emoji in professional documents (icons only)",
+                "Placing the Warm Light gradient and Navy Shift gradient adjacent to each other"
+              ]
+            },
+            "production_assets": {
+              "icon_set": [
+                {
+                  "name": "AI Brain",
+                  "category": "AI & Business Intelligence",
+                  "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z'/><path d='M9 21h6'/><path d='M10 17v4'/><path d='M14 17v4'/><circle cx='9' cy='9' r='1'/><circle cx='15' cy='9' r='1'/><path d='M9 9h6'/><path d='M12 9v4'/></svg>"
+                },
+                {
+                  "name": "Analytics Chart",
+                  "category": "Data Analytics",
+                  "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='7 14 10 10 13 13 17 8'/><circle cx='17' cy='8' r='1.5'/><line x1='7' y1='18' x2='7' y2='14'/><line x1='10' y1='18' x2='10' y2='10'/><line x1='13' y1='18' x2='13' y2='13'/><line x1='17' y1='18' x2='17' y2='8'/></svg>"
+                },
+                {
+                  "name": "Smart Home",
+                  "category": "Home Automation",
+                  "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z'/><path d='M9 14a3 3 0 016 0'/><circle cx='12' cy='15' r='1'/><path d='M8 11a5.5 5.5 0 018 0'/><line x1='12' y1='16' x2='12' y2='18'/></svg>"
+                },
+                {
+                  "name": "Security Camera",
+                  "category": "CCTV & Security",
+                  "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 8V6a2 2 0 012-2h2'/><path d='M4 16v2a2 2 0 002 2h2'/><path d='M16 4h2a2 2 0 012 2v2'/><path d='M16 20h2a2 2 0 002-2v-2'/><circle cx='12' cy='12' r='3'/><circle cx='12' cy='12' r='6'/><path d='M12 9v-1'/></svg>"
+                },
+                {
+                  "name": "Workflow Automation",
+                  "category": "n8n & API Integration",
+                  "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='5' cy='12' r='2.5'/><circle cx='19' cy='6' r='2.5'/><circle cx='19' cy='18' r='2.5'/><path d='M7.5 11L16.5 7'/><path d='M7.5 13L16.5 17'/><path d='M16.5 6h-4a2 2 0 00-2 2v0'/><path d='M16.5 18h-4a2 2 0 01-2-2v0'/></svg>"
+                }
+              ],
+              "image_generation_prompts": [
+                {
+                  "asset_type": "hero_banner",
+                  "aspect_ratio": "16:9",
+                  "usage_context": "Website hero section, landing page header",
+                  "prompt": "Modern technology consultancy office in Manama Bahrain, floor-to-ceiling windows overlooking a warm golden hour cityscape, a professional consultant reviewing a large analytics dashboard on an ultrawide monitor, navy blue and gold color scheme in the interior design, clean minimal desk with premium equipment, warm ambient lighting, shallow depth of field on the dashboard data, editorial photography style, premium corporate feel without coldness"
+                },
+                {
+                  "asset_type": "service_showcase",
+                  "aspect_ratio": "3:2",
+                  "usage_context": "AI Business Intelligence service page",
+                  "prompt": "Close-up of a professional's hands interacting with a holographic-style data visualization floating above a sleek tablet, warm navy blue ambient environment, golden accent lighting reflecting off the data points, charts showing upward trends and KPI metrics, bokeh background of a modern office, crisp detail on the data elements, warm color grading, no text or UI elements visible"
+                },
+                {
+                  "asset_type": "service_showcase",
+                  "aspect_ratio": "3:2",
+                  "usage_context": "Smart Home Automation service page",
+                  "prompt": "Elegant modern living room in a Gulf-style apartment, smart home control panel glowing on the wall with warm interface colors, automated curtains partially open revealing city lights, ambient smart lighting in warm gold tones, IoT devices subtly visible on shelves, clean architectural lines, premium residential interior photography, evening atmosphere, depth and warmth in the shadows"
+                },
+                {
+                  "asset_type": "service_showcase",
+                  "aspect_ratio": "3:2",
+                  "usage_context": "CCTV & Security service page",
+                  "prompt": "Professional security monitoring room with multiple high-resolution screens displaying camera feeds of a commercial property, a security consultant reviewing the footage on a clean modern desk, warm overhead lighting mixed with screen glow, organized cable management, navy blue accent wall behind the monitors, premium corporate security environment, sharp focus on the screens with soft background"
+                },
+                {
+                  "asset_type": "service_showcase",
+                  "aspect_ratio": "3:2",
+                  "usage_context": "Data Analytics & Power BI service page",
+                  "prompt": "Overhead bird's eye view of a clean desk with a laptop displaying a Power BI dashboard with colorful charts in navy and gold tones, a notebook with handwritten strategic notes beside it, a cup of Arabic coffee on a gold-rimmed saucer, warm natural light from a window casting soft shadows, minimal desk accessories, warm wood desk surface, editorial flat-lay photography"
+                },
+                {
+                  "asset_type": "about_section",
+                  "aspect_ratio": "1:1",
+                  "usage_context": "About page, founder section, social media profile",
+                  "prompt": "A confident consultant seated at a premium mahogany desk in a modern office, reviewing documents with a warm smile, bookshelves with business strategy books in the background, warm golden hour light through window blinds creating stripe patterns, navy suit jacket draped over chair, clean professional environment that feels lived-in not staged, portrait orientation, warm color grading"
+                },
+                {
+                  "asset_type": "pattern_background",
+                  "aspect_ratio": "16:9",
+                  "usage_context": "Website section backgrounds, presentation slides",
+                  "prompt": "Abstract geometric pattern inspired by circuit board traces and data flow, deep navy blue base with fine gold lines forming interconnected pathways and nodes, subtle gradient from dark navy to slightly lighter navy, clean minimal design with generous negative space, seamless tileable pattern, no text, no symbols, pure abstract geometry"
+                },
+                {
+                  "asset_type": "social_media",
+                  "aspect_ratio": "1:1",
+                  "usage_context": "Instagram posts, LinkedIn content",
+                  "prompt": "Dramatic close-up of a professional server rack with fiber optic cables glowing in warm amber and gold tones, shallow depth of field, clean cable management suggesting expertise and precision, navy blue ambient lighting in the background, bokeh light points from distant equipment LEDs, premium technology infrastructure photography, warm tones dominating"
+                },
+                {
+                  "asset_type": "testimonial_background",
+                  "aspect_ratio": "16:9",
+                  "usage_context": "Testimonial sections, client success stories",
+                  "prompt": "Soft abstract background with flowing cream and warm white gradients, subtle gold light particles scattered like data points, extremely minimal and clean, slight organic wave forms suggesting growth and progress, no sharp edges, dreamy and professional simultaneously, warm neutral palette suitable for overlaying dark text"
+                },
+                {
+                  "asset_type": "social_media",
+                  "aspect_ratio": "9:16",
+                  "usage_context": "Instagram stories, reels cover",
+                  "prompt": "Vertical composition of a modern smart home corridor at twilight, automated lighting creating a warm golden pathway, smart sensors visible as subtle glowing dots along the ceiling, clean modern architecture with Gulf-inspired arched doorway at the end, depth and perspective drawing the eye forward, premium residential technology feel, warm evening color palette"
+                }
+              ],
+              "video_storyboard": {
+                "duration": "60 seconds",
+                "format": "16:9 landscape, 1080p minimum",
+                "overall_tone": "Confident, warm, progressive. Music: ambient electronic with subtle Arabic instrumentation — think Bonobo meets traditional oud.",
+                "scenes": [
+                  {
+                    "scene_number": 1,
+                    "duration": "0-8s",
+                    "visual": "Animated Navy→White Sweep gradient fills screen. BYMB logo fades in white. Tagline types in letter by letter in Brand Blue.",
+                    "audio": "Soft ambient tone begins. Single oud note."
+                  },
+                  {
+                    "scene_number": 2,
+                    "duration": "8-20s",
+                    "visual": "Montage of quick cuts: hands typing on keyboard → dashboard loading → data visualization animating → smart home devices activating. All warm-toned. Gold accent lines trace between cuts.",
+                    "audio": "Beat builds gently. Voiceover: 'From data to decisions. From vision to reality.'"
+                  },
+                  {
+                    "scene_number": 3,
+                    "duration": "20-35s",
+                    "visual": "Split screen showing 3 services: Left (AI dashboard), Center (smart home control), Right (security monitoring). Each panel pulses with brand-colored activity. Panels merge into unified view.",
+                    "audio": "Full beat. Voiceover: 'AI-powered intelligence. Smart automation. Complete security.'"
+                  },
+                  {
+                    "scene_number": 4,
+                    "duration": "35-50s",
+                    "visual": "Client results: Animated counters showing metrics (40% efficiency gain, 24/7 monitoring, 50+ devices managed). Numbers in Gold on Navy background. Subtle Bahrain skyline in background.",
+                    "audio": "Music crescendo. Voiceover: 'Built by 23 years of experience.'"
+                  },
+                  {
+                    "scene_number": 5,
+                    "duration": "50-60s",
+                    "visual": "Return to Navy→White Sweep gradient. Logo centered. Contact info fades in below: www.by-mb.com | +973-66300033. Gold accent bar animates across bottom.",
+                    "audio": "Music resolves. Voiceover: 'BYMB. Success is a journey, not a destination.'"
+                  }
+                ]
+              },
+              "corporate_stationery": {
+                "business_card": {
+                  "size": "90mm × 55mm (international standard)",
+                  "front": "Midnight Navy background. White BYMB logo top-left. Name in Poppins Bold 10pt White. Title in Poppins Regular 8pt Gold. Gold divider line 60px. Contact details in Lora 8pt White (phone, email, website, LinkedIn).",
+                  "back": "Midnight Navy solid. Centered White logo (larger). Gold divider. Website and location in Mid Gray 8pt.",
+                  "bleed": "3mm all sides",
+                  "safe_zone": "5mm from trim"
+                },
+                "letterhead": {
+                  "size": "A4 (210mm × 297mm)",
+                  "header": "8mm Midnight Navy bar at top. 2mm Gold accent line below. Logo left-aligned. Contact info right-aligned in Lora 9pt.",
+                  "footer": "Gold divider line full width. Company name and CR number in Lora 8pt Mid Gray. 4mm Midnight Navy bar at bottom.",
+                  "margins": "25mm top (below header), 20mm sides, 25mm bottom (above footer)",
+                  "body_area": "170mm × 220mm usable space"
+                },
+                "email_signature": {
+                  "layout": "Horizontal — Logo (60×60) left, Gold vertical divider, info right",
+                  "content": "Name (Poppins Bold 16px Navy), Title (Poppins 12px Dark Navy), Company (Poppins 12px Mid Gray), Gold horizontal divider, Phone + Email + Website (Lora 12px Navy), Social links (LinkedIn, Instagram, Facebook), CR number (Lora 9px Mid Gray)",
+                  "technical": "All inline CSS, table layout, max-width 500px, no JavaScript, web-safe font fallbacks"
+                }
+              },
+              "document_templates": {
+                "presentation_slides": {
+                  "tool": "PowerPoint / Google Slides",
+                  "title_slide": "Midnight Navy background. White BYMB logo top-left. Headline in Poppins Bold 36pt White. Subtitle in Lora 18pt Gold. Gold accent bar 80px wide below subtitle.",
+                  "content_slide": "White or Cream background. Heading in Poppins Bold 24pt Midnight Navy. Body in Lora 16pt Midnight Navy. Gold accent bar under heading.",
+                  "section_divider": "Navy→White Sweep gradient. Section number in Poppins Bold 72pt Gold (30% opacity). Section title in Poppins Bold 36pt White.",
+                  "data_slide": "White background. Charts use brand data viz palette. Stats in Poppins Bold 48pt Gold. Labels in Lora 14pt Navy.",
+                  "closing_slide": "Midnight Navy background. Centered White logo. Gold divider. Contact info in Lora 14pt White."
+                },
+                "invoice_layout": {
+                  "header": "BYMB logo top-left. 'INVOICE' in Poppins Bold 24pt Midnight Navy top-right. Gold divider below.",
+                  "body": "Client details left, invoice details right. Table with Midnight Navy header row, alternating White/Cream rows. Gold total row.",
+                  "footer": "Bank details and CR number in Lora 9pt Mid Gray. Gold accent bar at bottom."
+                },
+                "proposal_template": {
+                  "cover": "Midnight Navy background. White logo centered. Project title in Poppins Bold 32pt White. Client name in Lora 18pt Gold. Date in Lora 14pt Mid Gray.",
+                  "sections": "White background. Numbered sections with Gold numbers (Poppins Bold 48pt, 20% opacity) and Midnight Navy titles. Body in Lora 11pt.",
+                  "pricing": "Cream background table. Navy headers. Gold highlight for recommended option.",
+                  "terms": "Lora 10pt Midnight Navy. Key terms in Poppins SemiBold."
+                }
+              }
+            }
+          },
+          "arabic_version": {
+            "visual_positioning_concept": "الهوية البصرية لـ BYMB تجمع بين حكمة الخبير ودقة المبتكر. كل نقطة تواصل تنقل رسالة: صُنع بخبرة 23 عاماً وبناء للمستقبل.",
+            "logo_system_direction": {
+              "bilingual": "النسخة العربية تستخدم خط Noto Sans Arabic Bold مع الحفاظ على نفس الوزن البصري",
+              "tagline_arabic": "النجاح رحلة، لا وجهة"
+            },
+            "color_strategy": "نفس لوحة الألوان الإنجليزية. الذهبي يحمل دلالات إيجابية في الثقافة الخليجية. الكحلي يعكس الثقة المؤسسية.",
+            "suggested_color_palette_structure": "مطابقة للنسخة الإنجليزية — نفس الألوان السداسية والأدوار",
+            "typography_direction": {
+              "heading_font": "Noto Sans Arabic Bold",
+              "body_font": "Noto Sans Arabic Regular",
+              "size_adjustment": "10-15% أكبر من الحجم الإنجليزي المقابل",
+              "line_height": "1.8-2.0 للنص العادي",
+              "direction": "RTL — جميع المحاذاة معكوسة"
+            },
+            "imagery_photography_direction": "نفس التوجيهات الإنجليزية مع إضافة عناصر ثقافية خليجية دقيقة",
+            "layout_composition_system": "تخطيط RTL معكوس. نفس نظام الشبكة. المحاذاة لليمين بدلاً من اليسار.",
+            "brand_texture_graphic_elements": "نفس الأنماط والعناصر",
+            "visual_differentiation_strategy": "نفس الاستراتيجية مع تأكيد على الجذور المحلية البحرينية",
+            "visual_consistency_rules": "نفس القواعد مع مراعاة اتجاه RTL"
+          },
+          "myNewField": 1,
+          "brand_name": "BYMB",
+          "agent3_brief_md": "## 0\n\n  ### json\n\n    #### english_version\n\n      ##### visual_positioning_concept\n\n        - **creative_direction_statement**: BYMB's visual identity fuses the authority and wisdom of the Sage archetype with the innovation and craftsmanship of the Creator. Every touchpoint communicates 'built by someone who has been in the trenches for 23 years and now builds the future.' The system is anchored in deep navy tones that project institutional confidence, warmed by gold accents that signal premium craftsmanship. The overall effect: a consultancy that doesn't just advise — it architects and delivers.\n\n        - **archetype**: Sage + Creator\n\n        - **archetype_rationale**: Sage reflects BYMB's 23 years of cross-industry management experience (banking, telecom, real estate) and data-driven consulting methodology. Creator reflects the hands-on building of AI systems, smart home ecosystems, automation workflows, and security infrastructure. Together they position BYMB as the rare consultancy that both understands the problem deeply AND builds the solution.\n\n        - **emotional_drivers**:\n          - Trust through demonstrated competence\n\n          - Confidence from tangible, working systems\n\n          - Premium quality without corporate coldness\n\n          - Innovation grounded in practical outcomes\n\n        - **personality_traits**:\n          - Authoritative but approachable\n\n          - Technical but human\n\n          - Premium but not elitist\n\n          - Innovative but reliable\n\n        - **desired_feel**: Walking into a master craftsman's modern workshop — everything is precise, purposeful, and built to last. The space feels warm and human despite the advanced technology. You immediately trust the person behind it.\n\n        - **what_to_avoid**: Corporate sterility, startup chaos, over-designed complexity, cold minimalism, generic stock imagery, tech-bro aesthetics, anything that looks templated or mass-produced.\n\n      ##### logo_system_direction\n\n        - **type**: Custom wordmark with tagline\n\n        - **primary_mark**: BYMB in bold uppercase custom typeface — geometric, confident letterforms with subtle weight variations that suggest both stability and forward movement.\n\n        - **tagline**: Success is a Journey, Not a Destination\n\n        - **tagline_treatment**: Set in Brand Blue (#4088C0) beneath the wordmark. Lighter weight, slightly letterspaced for breathing room.\n\n        - **symbol_concept**: The wordmark IS the symbol. No separate icon mark — the B letterform serves as the monogram for compact applications (favicons, app icons, social avatars).\n\n        - **geometry**: Strong vertical strokes with subtle curves. The B and M forms create visual anchors. Overall proportions are slightly wide, projecting stability.\n\n        - **scalability**: {\"full_logo\":\"Wordmark + tagline — use at 120px+ width\",\"compact\":\"Wordmark only (no tagline) — use at 80-120px width\",\"monogram\":\"B letterform extracted — use at 16-80px width (favicons, app icons)\"}\n\n        - **color_versions**: {\"white_on_dark\":\"White (#FFFFFF) wordmark + Brand Blue (#4088C0) tagline on transparent — for dark backgrounds (preferred)\",\"dark_on_light\":\"Black (#000000) wordmark + Brand Blue (#4088C0) tagline on transparent — for light backgrounds\"}\n\n        - **bilingual_notes**: Arabic version should use Noto Sans Arabic Bold for the company name, maintaining the same weight and visual density as the English wordmark. Tagline translated and set in the same Brand Blue.\n\n      ##### color_strategy\n\n        - **philosophy**: The palette communicates institutional trust (navy) elevated by premium craftsmanship (gold), grounded in warmth and approachability (cream). Every color earns its place — no decorative fills, no arbitrary accents.\n\n        - **emotional_roles**: {\"midnight_navy\":\"Authority, depth, expertise — the 23 years of experience\",\"dark_navy\":\"Active confidence — buttons, CTAs, navigation that says 'we build things'\",\"gold\":\"Premium quality, achievement, the reward of good work — used sparingly for maximum impact\",\"cream\":\"Warmth, approachability, human touch — the consultancy is a person, not a corporation\",\"white\":\"Clarity, breathing room, clean thinking — the Sage's clear mind\"}\n\n        - **contrast_strategy**: High contrast between navy and white for readability. Gold used as a bridge color that warms the navy-white relationship. Cream softens transitions. Status colors are functional-only — never decorative.\n\n        - **cultural_considerations**: Gold carries positive connotations in Gulf/Arabic culture (prosperity, generosity, excellence). Navy projects Western corporate authority while remaining culturally neutral. Cream avoids the coldness of pure white, which can feel sterile in Middle Eastern design contexts.\n\n      ##### suggested_color_palette_structure\n\n        - **primary**: {\"name\":\"Midnight Navy\",\"hex\":\"#1A2744\",\"rgb\":\"26, 39, 68\",\"role\":\"Primary text, dark backgrounds, hero sections, navigation, footers\",\"usage_percentage\":\"40-50% of visual weight\"}\n\n        - **secondary**: {\"name\":\"Dark Navy\",\"hex\":\"#243356\",\"rgb\":\"36, 51, 86\",\"role\":\"Buttons, accents, cards on dark sections, secondary dark areas\",\"usage_percentage\":\"15-20%\"}\n\n        - **accent**: {\"name\":\"Gold\",\"hex\":\"#C9A84C\",\"rgb\":\"201, 168, 76\",\"role\":\"CTAs, premium highlights, dividers, icons, achievement markers — sparingly\",\"usage_percentage\":\"5-10% maximum\"}\n\n        - **neutral**: {\"name\":\"Cream\",\"hex\":\"#F8F5EF\",\"rgb\":\"248, 245, 239\",\"role\":\"Warm backgrounds, feature sections, testimonials, pricing areas\",\"usage_percentage\":\"20-30%\"}\n\n        - **supporting_colors**: {\"white\":{\"hex\":\"#FFFFFF\",\"role\":\"Default background, text on dark\"},\"mid_gray\":{\"hex\":\"#B0AEA5\",\"role\":\"Secondary text, captions, muted elements\"},\"soft_gold\":{\"hex\":\"#F5EFE0\",\"role\":\"Gradient D warm light cycle, subtle card backgrounds\"},\"brand_blue\":{\"hex\":\"#4088C0\",\"role\":\"Logo tagline ONLY — never used elsewhere in UI\"}}\n\n        - **status_colors**: {\"success\":{\"hex\":\"#2E7D5B\",\"usage\":\"Active, Paid, Complete, Confirmed\"},\"info\":{\"hex\":\"#3B82C4\",\"usage\":\"Pending, In Progress, Processing\"},\"warning\":{\"hex\":\"#D4922A\",\"usage\":\"Needs Review, Expiring Soon, Attention\"},\"danger\":{\"hex\":\"#C44B4B\",\"usage\":\"Error, Cancelled, Expired, Overdue\"}}\n\n      ##### typography_direction\n\n        - **english**: {\"heading_font\":\"Poppins\",\"heading_weights\":\"Bold (700) for titles, SemiBold (600) for subheads and buttons\",\"body_font\":\"Lora\",\"body_weights\":\"Regular (400) for text, Bold (700) for emphasis, Italic (400i) for quotes\",\"pairing_rationale\":\"Poppins (geometric sans) projects modernity and technical clarity — the Creator side. Lora (transitional serif) adds warmth, readability, and literary gravitas — the Sage side. Together they say 'smart AND approachable.'\",\"scale\":{\"h1\":\"32pt / 2.5rem — Page titles, hero text\",\"h2\":\"24pt / 1.875rem — Section headings\",\"h3\":\"18pt / 1.125rem — Subsection headings\",\"body\":\"16px / 1rem — Paragraph text (web), 11pt (print)\",\"small\":\"14px / 0.875rem — Captions, labels\",\"caption\":\"12px / 0.75rem — Footnotes, legal\"},\"line_height\":\"1.7 for body text, 1.2 for headings\",\"letter_spacing\":\"0 for body, -0.02em for h1, 0.1-0.3em for uppercase labels\"}\n\n        - **arabic**: {\"heading_font\":\"Noto Sans Arabic\",\"heading_weights\":\"Bold (700) for titles, SemiBold (600) for subheads\",\"body_font\":\"Noto Sans Arabic\",\"body_weights\":\"Regular (400) for text\",\"notes\":\"Arabic text requires 10-15% larger sizing than English equivalents for comparable visual weight. Line height should be 1.8-2.0 for Arabic body text. RTL layout mirrors all alignments.\"}\n\n      ##### imagery_photography_direction\n\n        - **mood**: Confident, warm, purposeful. Images should feel like looking through the window of a high-end consultancy — real work happening, real technology in use, real results on screen. Never staged or stock-feeling.\n\n        - **composition**: {\"primary_style\":\"Clean, editorial — strong focal points with generous negative space\",\"framing\":\"Slightly elevated or eye-level perspectives. Avoid dramatic angles that feel startup-ish.\",\"depth_of_field\":\"Shallow where technology is the hero (sharp device, soft background). Deep for workspace and environment shots.\",\"color_grading\":\"Warm shadows (not cool/blue), slightly desaturated midtones, rich but not oversaturated. The palette should feel like it 'lives' in the brand's navy/gold/cream world.\"}\n\n        - **human_presence**: {\"when_to_include\":\"Service showcases, testimonials, about pages, social media\",\"treatment\":\"Professional but not corporate. Smart-casual attire. Engaged in actual work (not posing). Show hands interacting with technology.\",\"diversity_note\":\"Use job titles and context instead of ethnicity descriptors: 'professional reviewing dashboard', 'consultant presenting to client', 'technician installing equipment'.\"}\n\n        - **lighting**: {\"primary\":\"Natural light supplemented by warm artificial — golden hour feeling without being cliché\",\"technology_shots\":\"Clean, even lighting with subtle warm fill. Screens should be readable, not blown out.\",\"avoid\":\"Harsh fluorescent, blue-cast tech lighting, overly dramatic shadows\"}\n\n        - **subject_categories**:\n          - Technology in action — dashboards, analytics screens, Home Assistant interfaces\n\n          - Workspaces — modern, clean desks with technology visible but not cluttered\n\n          - Hands-on installation — CCTV cameras, smart home devices, network equipment\n\n          - Data visualization — charts, graphs, KPIs displayed on monitors\n\n          - Bahrain context — Manama skyline, local architecture (subtle, not tourist-postcard)\n\n          - Abstract patterns — geometric shapes echoing the brand's precision theme\n\n        - **banned_imagery**:\n          - Generic handshake photos\n\n          - Clipart-style illustrations\n\n          - Overly futuristic/sci-fi renders\n\n          - Blue-wash tech stock photos\n\n          - People looking at empty screens\n\n          - AI-generated faces that look uncanny\n\n          - Busy, cluttered compositions\n\n        - **approved_imagery**:\n          - Real dashboards with actual data (anonymized)\n\n          - Genuine workspace environments\n\n          - Close-ups of quality hardware (Hikvision cameras, Zigbee devices)\n\n          - Architectural photography of Bahrain (warm-toned)\n\n          - Abstract geometric patterns using brand colors\n\n          - Before/after transformation comparisons\n\n      ##### layout_composition_system\n\n        - **grid**: {\"web\":\"12-column grid, 1200px max-width container, 24px gutter\",\"mobile\":\"4-column grid, 16px gutter, full-bleed sections allowed\",\"print\":\"6-column grid for A4, 20mm margins all sides\"}\n\n        - **spacing_scale**: {\"unit\":\"8px base unit\",\"xxs\":\"4px — inner padding, icon gaps\",\"xs\":\"8px — tight element spacing\",\"sm\":\"16px — related element gaps\",\"md\":\"24px — card padding, section inner spacing\",\"lg\":\"48px — section gaps\",\"xl\":\"80px — major section breaks\",\"xxl\":\"120px — page-level vertical rhythm\"}\n\n        - **white_space**: Generous. White space IS the premium signal. Minimum 40% of any page should be breathing room. When in doubt, add more space.\n\n        - **visual_rhythm**: Alternate between full-width navy sections and contained cream/white sections. Every 3rd section should have a visual 'anchor' (large stat, featured image, or gradient background).\n\n        - **document_hierarchy**: {\"z_pattern\":\"Hero → Key stats → Services → Social proof → CTA. This pattern applies to landing pages, presentations, and one-pagers.\",\"f_pattern\":\"For content-heavy pages (blog, documentation). Left-aligned headings with ragged-right body text.\"}\n\n        - **section_patterns**: {\"hero\":\"Full-width navy or Navy→White Sweep gradient. White logo top-left. Poppins Bold headline center or left. Gold Pulse CTA. Maximum 60% text coverage.\",\"feature_grid\":\"Cream or Warm Light gradient background. 2-3 column card grid. White cards with gold left-border accent. Lift & Shadow hover.\",\"testimonial\":\"Cream background. Large gold opening quote mark. Lora Italic quote text. Author name in Poppins Bold.\",\"stats_bar\":\"Midnight Navy background. 3-4 large numbers in Gold (Poppins Bold 48px). Labels in White (Lora 14px).\",\"cta_section\":\"Navy→White Sweep gradient. Centered headline. Gold Pulse primary button + Glass secondary.\",\"footer\":\"Midnight Navy solid. White logo. Gold divider line at top. Mid Gray text. 3-column layout (about, links, contact).\"}\n\n        - **asymmetric_anchor**: Break the grid intentionally once per page with an oversized element (large stat, hero image, or pull quote) that spans 8+ columns. This prevents the layout from feeling too rigid.\n\n      ##### brand_texture_graphic_elements\n\n        - **primary_pattern**: {\"name\":\"Precision Grid\",\"description\":\"Subtle dotted grid pattern using Mid Gray (#B0AEA5) at 5-8% opacity. Represents data points, systematic thinking, the Sage's organized mind. Used as background texture on white/cream sections.\",\"usage\":\"Presentation backgrounds, document watermarks, website section fills. Never over imagery.\"}\n\n        - **secondary_pattern**: {\"name\":\"Circuit Trace\",\"description\":\"Thin navy lines forming abstracted circuit board paths — no components, just clean pathways. Represents the Creator's craft of building connected systems.\",\"usage\":\"Header/footer decorative elements, section dividers, icon backgrounds at low opacity.\"}\n\n        - **line_weight_system**: {\"hairline\":\"0.5px — subtle dividers, grid lines\",\"light\":\"1px — card borders, input borders\",\"medium\":\"2px — section dividers, underlines, active states\",\"bold\":\"4px — gold accent bars, header/footer bars\",\"heavy\":\"8px — hero section top/bottom bars, major structural lines\"}\n\n        - **gold_accent_bar**: 4px solid Gold (#C9A84C) line used as a visual punctuation mark. Placed under headings, between sections, as card left-border, and as page header/footer accent. Maximum 60px wide when decorative, full-width when structural.\n\n        - **gradient_policy**: {\"allowed_gradients\":[\"Navy Shift: #1A2744 → #243356 → #1A2744 → #243356 (8s ease infinite, 400% size)\",\"Navy→White Sweep: #1A2744 → #243356 → #FFFFFF → #243356 → #1A2744 (12s ease infinite, 500% size)\",\"Navy→Cream Sweep: #1A2744 → #243356 → #F8F5EF → #243356 → #1A2744 (12s ease infinite, 500% size)\",\"Warm Light: #F8F5EF → #F5EFE0 → #F8F5EF → #E8E0D0 (8s ease infinite, 400% size)\"],\"banned\":\"No rainbow gradients. No gradients as text fills. No gradients on buttons (use solid fills with hover animations). No more than one animated gradient visible at a time.\"}\n\n        - **icon_style**: Outline-style, 2px stroke weight, rounded corners. Navy (#1A2744) default, Gold (#C9A84C) for active/hover states. 24px base grid. Consistent optical sizing across the set.\n\n        - **data_visualization**: {\"primary_series\":\"Dark Navy (#243356)\",\"secondary_series\":\"Gold (#C9A84C)\",\"tertiary_series\":\"Mid Gray (#B0AEA5)\",\"positive\":\"Success (#2E7D5B)\",\"negative\":\"Danger (#C44B4B)\",\"gridlines\":\"Mid Gray at 20% opacity\",\"labels\":\"Poppins Regular 12px, Midnight Navy\"}\n\n      ##### visual_differentiation_strategy\n\n        - **against_competitors**: Most Bahrain consultancies use either cold corporate blue-and-white (banking heritage) or flashy startup colors (tech wannabes). BYMB occupies the gap: warm navy + gold signals BOTH institutional trust AND premium craft. No competitor in the Bahrain technology consultancy space uses this warm-authority combination.\n\n        - **category_creation_visual**: BYMB's visual identity creates a new category: 'The Craftsman Consultant.' Not a suit-and-tie firm, not a hoodie startup. The brand looks like an expert who builds with their hands as well as their mind. This is communicated through the Sage + Creator archetype across every visual touchpoint.\n\n        - **trust_signals_embedded_in_design**:\n          - Gold accents signal premium without requiring explicit price positioning\n\n          - Navy depth communicates decades of experience without needing to state years\n\n          - Generous white space signals confidence (only the insecure fill every pixel)\n\n          - Real technology screenshots in marketing build immediate credibility\n\n          - Bilingual (EN/AR) design shows local roots with global capability\n\n          - Lora serif body text creates the gravitas of a published expert\n\n      ##### visual_consistency_rules\n\n        - **non_negotiables**:\n          - Logo must always include tagline at sizes 120px+ width\n\n          - Gold never exceeds 10% of visual weight on any single page\n\n          - Minimum contrast ratio 4.5:1 for all text\n\n          - Poppins for headings, Lora for body — never reversed, never substituted\n\n          - Status colors (#2E7D5B, #3B82C4, #D4922A, #C44B4B) are functional ONLY — never decorative\n\n          - White space minimum 40% of any page or slide\n\n          - Animated gradients: maximum ONE visible at a time, never on buttons\n\n          - Photography must be warm-toned — no blue-cast, no cold lighting\n\n          - Every page/slide must include the gold accent bar somewhere\n\n          - Brand Blue (#4088C0) is ONLY for the logo tagline — never in UI\n\n        - **misuse_to_avoid**:\n          - Using gold for large background fills (it's an accent, not a surface)\n\n          - Placing the logo on busy or patterned backgrounds\n\n          - Mixing more than 2 font families in any single deliverable\n\n          - Using status colors as brand colors in marketing materials\n\n          - Applying animated gradients to print materials (static only)\n\n          - Stretching, rotating, or adding effects to the logo\n\n          - Using navy text on dark navy backgrounds (insufficient contrast)\n\n          - Centering body text (always left-align or right-align for Arabic)\n\n          - Using emoji in professional documents (icons only)\n\n          - Placing the Warm Light gradient and Navy Shift gradient adjacent to each other\n\n      ##### production_assets\n\n        - **icon_set**:\n          - Item 1:\n            - **name**: AI Brain\n            - **category**: AI & Business Intelligence\n            - **svg**: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7z'/><path d='M9 21h6'/><path d='M10 17v4'/><path d='M14 17v4'/><circle cx='9' cy='9' r='1'/><circle cx='15' cy='9' r='1'/><path d='M9 9h6'/><path d='M12 9v4'/></svg>\n\n          - Item 2:\n            - **name**: Analytics Chart\n            - **category**: Data Analytics\n            - **svg**: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='18' height='18' rx='2'/><polyline points='7 14 10 10 13 13 17 8'/><circle cx='17' cy='8' r='1.5'/><line x1='7' y1='18' x2='7' y2='14'/><line x1='10' y1='18' x2='10' y2='10'/><line x1='13' y1='18' x2='13' y2='13'/><line x1='17' y1='18' x2='17' y2='8'/></svg>\n\n          - Item 3:\n            - **name**: Smart Home\n            - **category**: Home Automation\n            - **svg**: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1z'/><path d='M9 14a3 3 0 016 0'/><circle cx='12' cy='15' r='1'/><path d='M8 11a5.5 5.5 0 018 0'/><line x1='12' y1='16' x2='12' y2='18'/></svg>\n\n          - Item 4:\n            - **name**: Security Camera\n            - **category**: CCTV & Security\n            - **svg**: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 8V6a2 2 0 012-2h2'/><path d='M4 16v2a2 2 0 002 2h2'/><path d='M16 4h2a2 2 0 012 2v2'/><path d='M16 20h2a2 2 0 002-2v-2'/><circle cx='12' cy='12' r='3'/><circle cx='12' cy='12' r='6'/><path d='M12 9v-1'/></svg>\n\n          - Item 5:\n            - **name**: Workflow Automation\n            - **category**: n8n & API Integration\n            - **svg**: <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#1A2744' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='5' cy='12' r='2.5'/><circle cx='19' cy='6' r='2.5'/><circle cx='19' cy='18' r='2.5'/><path d='M7.5 11L16.5 7'/><path d='M7.5 13L16.5 17'/><path d='M16.5 6h-4a2 2 0 00-2 2v0'/><path d='M16.5 18h-4a2 2 0 01-2-2v0'/></svg>\n\n        - **image_generation_prompts**:\n          - Item 1:\n            - **asset_type**: hero_banner\n            - **aspect_ratio**: 16:9\n            - **usage_context**: Website hero section, landing page header\n            - **prompt**: Modern technology consultancy office in Manama Bahrain, floor-to-ceiling windows overlooking a warm golden hour cityscape, a professional consultant reviewing a large analytics dashboard on an ultrawide monitor, navy blue and gold color scheme in the interior design, clean minimal desk with premium equipment, warm ambient lighting, shallow depth of field on the dashboard data, editorial photography style, premium corporate feel without coldness\n\n          - Item 2:\n            - **asset_type**: service_showcase\n            - **aspect_ratio**: 3:2\n            - **usage_context**: AI Business Intelligence service page\n            - **prompt**: Close-up of a professional's hands interacting with a holographic-style data visualization floating above a sleek tablet, warm navy blue ambient environment, golden accent lighting reflecting off the data points, charts showing upward trends and KPI metrics, bokeh background of a modern office, crisp detail on the data elements, warm color grading, no text or UI elements visible\n\n          - Item 3:\n            - **asset_type**: service_showcase\n            - **aspect_ratio**: 3:2\n            - **usage_context**: Smart Home Automation service page\n            - **prompt**: Elegant modern living room in a Gulf-style apartment, smart home control panel glowing on the wall with warm interface colors, automated curtains partially open revealing city lights, ambient smart lighting in warm gold tones, IoT devices subtly visible on shelves, clean architectural lines, premium residential interior photography, evening atmosphere, depth and warmth in the shadows\n\n          - Item 4:\n            - **asset_type**: service_showcase\n            - **aspect_ratio**: 3:2\n            - **usage_context**: CCTV & Security service page\n            - **prompt**: Professional security monitoring room with multiple high-resolution screens displaying camera feeds of a commercial property, a security consultant reviewing the footage on a clean modern desk, warm overhead lighting mixed with screen glow, organized cable management, navy blue accent wall behind the monitors, premium corporate security environment, sharp focus on the screens with soft background\n\n          - Item 5:\n            - **asset_type**: service_showcase\n            - **aspect_ratio**: 3:2\n            - **usage_context**: Data Analytics & Power BI service page\n            - **prompt**: Overhead bird's eye view of a clean desk with a laptop displaying a Power BI dashboard with colorful charts in navy and gold tones, a notebook with handwritten strategic notes beside it, a cup of Arabic coffee on a gold-rimmed saucer, warm natural light from a window casting soft shadows, minimal desk accessories, warm wood desk surface, editorial flat-lay photography\n\n          - Item 6:\n            - **asset_type**: about_section\n            - **aspect_ratio**: 1:1\n            - **usage_context**: About page, founder section, social media profile\n            - **prompt**: A confident consultant seated at a premium mahogany desk in a modern office, reviewing documents with a warm smile, bookshelves with business strategy books in the background, warm golden hour light through window blinds creating stripe patterns, navy suit jacket draped over chair, clean professional environment that feels lived-in not staged, portrait orientation, warm color grading\n\n          - Item 7:\n            - **asset_type**: pattern_background\n            - **aspect_ratio**: 16:9\n            - **usage_context**: Website section backgrounds, presentation slides\n            - **prompt**: Abstract geometric pattern inspired by circuit board traces and data flow, deep navy blue base with fine gold lines forming interconnected pathways and nodes, subtle gradient from dark navy to slightly lighter navy, clean minimal design with generous negative space, seamless tileable pattern, no text, no symbols, pure abstract geometry\n\n          - Item 8:\n            - **asset_type**: social_media\n            - **aspect_ratio**: 1:1\n            - **usage_context**: Instagram posts, LinkedIn content\n            - **prompt**: Dramatic close-up of a professional server rack with fiber optic cables glowing in warm amber and gold tones, shallow depth of field, clean cable management suggesting expertise and precision, navy blue ambient lighting in the background, bokeh light points from distant equipment LEDs, premium technology infrastructure photography, warm tones dominating\n\n          - Item 9:\n            - **asset_type**: testimonial_background\n            - **aspect_ratio**: 16:9\n            - **usage_context**: Testimonial sections, client success stories\n            - **prompt**: Soft abstract background with flowing cream and warm white gradients, subtle gold light particles scattered like data points, extremely minimal and clean, slight organic wave forms suggesting growth and progress, no sharp edges, dreamy and professional simultaneously, warm neutral palette suitable for overlaying dark text\n\n          - Item 10:\n            - **asset_type**: social_media\n            - **aspect_ratio**: 9:16\n            - **usage_context**: Instagram stories, reels cover\n            - **prompt**: Vertical composition of a modern smart home corridor at twilight, automated lighting creating a warm golden pathway, smart sensors visible as subtle glowing dots along the ceiling, clean modern architecture with Gulf-inspired arched doorway at the end, depth and perspective drawing the eye forward, premium residential technology feel, warm evening color palette\n\n        - **video_storyboard**: {\"duration\":\"60 seconds\",\"format\":\"16:9 landscape, 1080p minimum\",\"overall_tone\":\"Confident, warm, progressive. Music: ambient electronic with subtle Arabic instrumentation — think Bonobo meets traditional oud.\",\"scenes\":[{\"scene_number\":1,\"duration\":\"0-8s\",\"visual\":\"Animated Navy→White Sweep gradient fills screen. BYMB logo fades in white. Tagline types in letter by letter in Brand Blue.\",\"audio\":\"Soft ambient tone begins. Single oud note.\"},{\"scene_number\":2,\"duration\":\"8-20s\",\"visual\":\"Montage of quick cuts: hands typing on keyboard → dashboard loading → data visualization animating → smart home devices activating. All warm-toned. Gold accent lines trace between cuts.\",\"audio\":\"Beat builds gently. Voiceover: 'From data to decisions. From vision to reality.'\"},{\"scene_number\":3,\"duration\":\"20-35s\",\"visual\":\"Split screen showing 3 services: Left (AI dashboard), Center (smart home control), Right (security monitoring). Each panel pulses with brand-colored activity. Panels merge into unified view.\",\"audio\":\"Full beat. Voiceover: 'AI-powered intelligence. Smart automation. Complete security.'\"},{\"scene_number\":4,\"duration\":\"35-50s\",\"visual\":\"Client results: Animated counters showing metrics (40% efficiency gain, 24/7 monitoring, 50+ devices managed). Numbers in Gold on Navy background. Subtle Bahrain skyline in background.\",\"audio\":\"Music crescendo. Voiceover: 'Built by 23 years of experience.'\"},{\"scene_number\":5,\"duration\":\"50-60s\",\"visual\":\"Return to Navy→White Sweep gradient. Logo centered. Contact info fades in below: www.by-mb.com | +973-66300033. Gold accent bar animates across bottom.\",\"audio\":\"Music resolves. Voiceover: 'BYMB. Success is a journey, not a destination.'\"}]}\n\n        - **corporate_stationery**: {\"business_card\":{\"size\":\"90mm × 55mm (international standard)\",\"front\":\"Midnight Navy background. White BYMB logo top-left. Name in Poppins Bold 10pt White. Title in Poppins Regular 8pt Gold. Gold divider line 60px. Contact details in Lora 8pt White (phone, email, website, LinkedIn).\",\"back\":\"Midnight Navy solid. Centered White logo (larger). Gold divider. Website and location in Mid Gray 8pt.\",\"bleed\":\"3mm all sides\",\"safe_zone\":\"5mm from trim\"},\"letterhead\":{\"size\":\"A4 (210mm × 297mm)\",\"header\":\"8mm Midnight Navy bar at top. 2mm Gold accent line below. Logo left-aligned. Contact info right-aligned in Lora 9pt.\",\"footer\":\"Gold divider line full width. Company name and CR number in Lora 8pt Mid Gray. 4mm Midnight Navy bar at bottom.\",\"margins\":\"25mm top (below header), 20mm sides, 25mm bottom (above footer)\",\"body_area\":\"170mm × 220mm usable space\"},\"email_signature\":{\"layout\":\"Horizontal — Logo (60×60) left, Gold vertical divider, info right\",\"content\":\"Name (Poppins Bold 16px Navy), Title (Poppins 12px Dark Navy), Company (Poppins 12px Mid Gray), Gold horizontal divider, Phone + Email + Website (Lora 12px Navy), Social links (LinkedIn, Instagram, Facebook), CR number (Lora 9px Mid Gray)\",\"technical\":\"All inline CSS, table layout, max-width 500px, no JavaScript, web-safe font fallbacks\"}}\n\n        - **document_templates**: {\"presentation_slides\":{\"tool\":\"PowerPoint / Google Slides\",\"title_slide\":\"Midnight Navy background. White BYMB logo top-left. Headline in Poppins Bold 36pt White. Subtitle in Lora 18pt Gold. Gold accent bar 80px wide below subtitle.\",\"content_slide\":\"White or Cream background. Heading in Poppins Bold 24pt Midnight Navy. Body in Lora 16pt Midnight Navy. Gold accent bar under heading.\",\"section_divider\":\"Navy→White Sweep gradient. Section number in Poppins Bold 72pt Gold (30% opacity). Section title in Poppins Bold 36pt White.\",\"data_slide\":\"White background. Charts use brand data viz palette. Stats in Poppins Bold 48pt Gold. Labels in Lora 14pt Navy.\",\"closing_slide\":\"Midnight Navy background. Centered White logo. Gold divider. Contact info in Lora 14pt White.\"},\"invoice_layout\":{\"header\":\"BYMB logo top-left. 'INVOICE' in Poppins Bold 24pt Midnight Navy top-right. Gold divider below.\",\"body\":\"Client details left, invoice details right. Table with Midnight Navy header row, alternating White/Cream rows. Gold total row.\",\"footer\":\"Bank details and CR number in Lora 9pt Mid Gray. Gold accent bar at bottom.\"},\"proposal_template\":{\"cover\":\"Midnight Navy background. White logo centered. Project title in Poppins Bold 32pt White. Client name in Lora 18pt Gold. Date in Lora 14pt Mid Gray.\",\"sections\":\"White background. Numbered sections with Gold numbers (Poppins Bold 48pt, 20% opacity) and Midnight Navy titles. Body in Lora 11pt.\",\"pricing\":\"Cream background table. Navy headers. Gold highlight for recommended option.\",\"terms\":\"Lora 10pt Midnight Navy. Key terms in Poppins SemiBold.\"}}\n\n    #### arabic_version\n\n      - **visual_positioning_concept**: الهوية البصرية لـ BYMB تجمع بين حكمة الخبير ودقة المبتكر. كل نقطة تواصل تنقل رسالة: صُنع بخبرة 23 عاماً وبناء للمستقبل.\n\n      ##### logo_system_direction\n\n        - **bilingual**: النسخة العربية تستخدم خط Noto Sans Arabic Bold مع الحفاظ على نفس الوزن البصري\n\n        - **tagline_arabic**: النجاح رحلة، لا وجهة\n\n      - **color_strategy**: نفس لوحة الألوان الإنجليزية. الذهبي يحمل دلالات إيجابية في الثقافة الخليجية. الكحلي يعكس الثقة المؤسسية.\n\n      - **suggested_color_palette_structure**: مطابقة للنسخة الإنجليزية — نفس الألوان السداسية والأدوار\n\n      ##### typography_direction\n\n        - **heading_font**: Noto Sans Arabic Bold\n\n        - **body_font**: Noto Sans Arabic Regular\n\n        - **size_adjustment**: 10-15% أكبر من الحجم الإنجليزي المقابل\n\n        - **line_height**: 1.8-2.0 للنص العادي\n\n        - **direction**: RTL — جميع المحاذاة معكوسة\n\n      - **imagery_photography_direction**: نفس التوجيهات الإنجليزية مع إضافة عناصر ثقافية خليجية دقيقة\n\n      - **layout_composition_system**: تخطيط RTL معكوس. نفس نظام الشبكة. المحاذاة لليمين بدلاً من اليسار.\n\n      - **brand_texture_graphic_elements**: نفس الأنماط والعناصر\n\n      - **visual_differentiation_strategy**: نفس الاستراتيجية مع تأكيد على الجذور المحلية البحرينية\n\n      - **visual_consistency_rules**: نفس القواعد مع مراعاة اتجاه RTL\n\n    - **myNewField**: 1\n\n  ### pairedItem\n\n    - **item**: 0"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Edit Fields": [
+      {
+        "json": {
+          "brand_name": "BYMB's visual identity fuses the authority and wisdom of the Sage archetype with the innovation and craftsmanship of the Creator. Every touchpoint communicates 'built by someone who has been in the trenches for 23 years and now builds the future.' The system is anchored in deep navy tones that project institutional confidence, warmed by gold accents that signal premium craftsmanship. The overall effect: a consultancy that doesn't just advise — it architects and delivers.\n \nSage + Creator\n \nSage reflects BYMB's 23 years of cross-industry management experience (banking, telecom, real estate) and data-driven consulting methodology. Creator reflects the hands-on building of AI systems, smart home ecosystems, automation workflows, and security infrastructure. Together they position BYMB as the rare consultancy that both understands the problem deeply AND builds the solution.\n \nTrust through demonstrated competence,Confidence from tangible, working systems,Premium quality without corporate coldness,Innovation grounded in practical outcomes\n \nAuthoritative but approachable,Technical but human,Premium but not elitist,Innovative but reliable\n \nWalking into a master craftsman's modern workshop — everything is precise, purposeful, and built to last. The space feels warm and human despite the advanced technology. You immediately trust the person behind it.\n \nCorporate sterility, startup chaos, over-designed complexity, cold minimalism, generic stock imagery, tech-bro aesthetics, anything that looks templated or mass-produced. ",
+          "output": {
+            "english_version": {
+              "production_assets": {
+                "image_generation_prompts": [
+                  {
+                    "asset_type": "hero_banner",
+                    "aspect_ratio": "16:9",
+                    "usage_context": "Website hero section, landing page header",
+                    "prompt": "Modern technology consultancy office in Manama Bahrain, floor-to-ceiling windows overlooking a warm golden hour cityscape, a professional consultant reviewing a large analytics dashboard on an ultrawide monitor, navy blue and gold color scheme in the interior design, clean minimal desk with premium equipment, warm ambient lighting, shallow depth of field on the dashboard data, editorial photography style, premium corporate feel without coldness"
+                  },
+                  {
+                    "asset_type": "service_showcase",
+                    "aspect_ratio": "3:2",
+                    "usage_context": "AI Business Intelligence service page",
+                    "prompt": "Close-up of a professional's hands interacting with a holographic-style data visualization floating above a sleek tablet, warm navy blue ambient environment, golden accent lighting reflecting off the data points, charts showing upward trends and KPI metrics, bokeh background of a modern office, crisp detail on the data elements, warm color grading, no text or UI elements visible"
+                  },
+                  {
+                    "asset_type": "service_showcase",
+                    "aspect_ratio": "3:2",
+                    "usage_context": "Smart Home Automation service page",
+                    "prompt": "Elegant modern living room in a Gulf-style apartment, smart home control panel glowing on the wall with warm interface colors, automated curtains partially open revealing city lights, ambient smart lighting in warm gold tones, IoT devices subtly visible on shelves, clean architectural lines, premium residential interior photography, evening atmosphere, depth and warmth in the shadows"
+                  },
+                  {
+                    "asset_type": "service_showcase",
+                    "aspect_ratio": "3:2",
+                    "usage_context": "CCTV & Security service page",
+                    "prompt": "Professional security monitoring room with multiple high-resolution screens displaying camera feeds of a commercial property, a security consultant reviewing the footage on a clean modern desk, warm overhead lighting mixed with screen glow, organized cable management, navy blue accent wall behind the monitors, premium corporate security environment, sharp focus on the screens with soft background"
+                  },
+                  {
+                    "asset_type": "service_showcase",
+                    "aspect_ratio": "3:2",
+                    "usage_context": "Data Analytics & Power BI service page",
+                    "prompt": "Overhead bird's eye view of a clean desk with a laptop displaying a Power BI dashboard with colorful charts in navy and gold tones, a notebook with handwritten strategic notes beside it, a cup of Arabic coffee on a gold-rimmed saucer, warm natural light from a window casting soft shadows, minimal desk accessories, warm wood desk surface, editorial flat-lay photography"
+                  },
+                  {
+                    "asset_type": "about_section",
+                    "aspect_ratio": "1:1",
+                    "usage_context": "About page, founder section, social media profile",
+                    "prompt": "A confident consultant seated at a premium mahogany desk in a modern office, reviewing documents with a warm smile, bookshelves with business strategy books in the background, warm golden hour light through window blinds creating stripe patterns, navy suit jacket draped over chair, clean professional environment that feels lived-in not staged, portrait orientation, warm color grading"
+                  },
+                  {
+                    "asset_type": "pattern_background",
+                    "aspect_ratio": "16:9",
+                    "usage_context": "Website section backgrounds, presentation slides",
+                    "prompt": "Abstract geometric pattern inspired by circuit board traces and data flow, deep navy blue base with fine gold lines forming interconnected pathways and nodes, subtle gradient from dark navy to slightly lighter navy, clean minimal design with generous negative space, seamless tileable pattern, no text, no symbols, pure abstract geometry"
+                  },
+                  {
+                    "asset_type": "social_media",
+                    "aspect_ratio": "1:1",
+                    "usage_context": "Instagram posts, LinkedIn content",
+                    "prompt": "Dramatic close-up of a professional server rack with fiber optic cables glowing in warm amber and gold tones, shallow depth of field, clean cable management suggesting expertise and precision, navy blue ambient lighting in the background, bokeh light points from distant equipment LEDs, premium technology infrastructure photography, warm tones dominating"
+                  },
+                  {
+                    "asset_type": "testimonial_background",
+                    "aspect_ratio": "16:9",
+                    "usage_context": "Testimonial sections, client success stories",
+                    "prompt": "Soft abstract background with flowing cream and warm white gradients, subtle gold light particles scattered like data points, extremely minimal and clean, slight organic wave forms suggesting growth and progress, no sharp edges, dreamy and professional simultaneously, warm neutral palette suitable for overlaying dark text"
+                  },
+                  {
+                    "asset_type": "social_media",
+                    "aspect_ratio": "9:16",
+                    "usage_context": "Instagram stories, reels cover",
+                    "prompt": "Vertical composition of a modern smart home corridor at twilight, automated lighting creating a warm golden pathway, smart sensors visible as subtle glowing dots along the ceiling, clean modern architecture with Gulf-inspired arched doorway at the end, depth and perspective drawing the eye forward, premium residential technology feel, warm evening color palette"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "7C Prompt enhancer": [
+      {
+        "json": {
+          "text": "A modern technology consultancy office in Manama, Bahrain, featuring a master craftsman's workshop aesthetic where deep navy built-in cabinetry and a rich walnut desk meet brushed gold accents on monitor stands and lamp details. A seasoned, approachable consultant in sharp but comfortable business attire stands beside the desk, gesturing thoughtfully toward a complex, glowing analytics dashboard on a large ultrawide monitor, their expression one of confident analysis rather than stress. The scene is bathed in the warm, directional, golden-hour light streaming through expansive floor-to-ceiling windows, casting long, soft shadows that accent the textures of wool fabric, polished wood, and matte screen surfaces, with a color temperature of approximately 3500K that floods the room with a premium, inviting glow. The composition uses the rule of thirds, placing the consultant and desk in the left third to frame a breathtaking view of the Manama cityscape in the right two-thirds, with a shallow depth of field subtly blurring distant skyscrapers while keeping the dashboard's intricate data points in sharp, editorial focus—a visual metaphor for clarity amid complexity. The color palette is anchored in institutional, authoritative navy blue (on the wall paneling, consultant's blazer) and warmed by luminous, craft-signifying gold (in the ambient light reflections, desk hardware, and city's sunset glow), balanced by the natural tones of wood and leather to prevent coldness. The style is a fusion of precise architectural photography—highlighting clean lines and spatial harmony—and the tactile, detail-oriented luxury of high-end product photography, where every element feels intentionally placed and built to last. Avoid any security camera or surveillance tropes, dark or moody lighting, red recording indicators, cluttered or chaotic desks, generic stock photo poses (like over-the-shoulder laptop shots), corporate sterility, startup casualness, visible logos on equipment, or any aesthetic that feels templated, mass-produced, or lacking human warmth.\n\nBrand: BYMB | Asset: hero_banner | Usage: Website hero section, landing page header"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Crypto": [
+      {
+        "json": {
+          "sessionId": "1105f2ab-41c4-4771-9c66-306204e33f66"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LOGO",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Pantone Approximator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LOGO": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Typography System",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pantone Approximator": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Typography System": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Mockup Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Brand Rules Diagrams",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "social media templates",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Brand Rules Diagrams": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "social media templates": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser6": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "7C Prompt enhancer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7A": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7D": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7C Prompt enhancer": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "7F HTTP AUTH": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Typography System",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "social media templates",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LOGO",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pantone Approximator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Brand Rules Diagrams",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Mockup Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "7A",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "7D",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "7C Prompt enhancer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mockup Generator": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execution Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execution Data": {
+      "main": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser6",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "7C Prompt enhancer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser2",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Typography System",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser4",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Brand Rules Diagrams",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Mockup Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Pantone Approximator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "LOGO",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "social media templates",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser5",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crypto": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Build Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Command": {
+      "main": [
+        [
+          {
+            "node": "Execute a command1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Crypto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "cb200786-32af-45a8-89df-a079e9094068",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "dfa55baeaed6d16b04eea52bb223e312100efda8320b46d3fccb202a85efb890"
+  },
+  "id": "Zd1QDlERdD5LPdQI",
+  "tags": []
+}
